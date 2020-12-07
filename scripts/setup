@@ -1,0 +1,66 @@
+#!/bin/bash
+# Exits if any command returns a non-zero status
+set -e
+# Set dir  
+ROOT_DIR="$(cd $(dirname "${BASH_SOURCE[0]}"); cd ..; pwd)"
+
+function link_files() {
+  # Link files
+  echo "🔗 Linking files..."
+  for f in $(ls $ROOT_DIR/symlinks/); do
+    ln -sf $ROOT_DIR/symlinks/$f $HOME/.$f
+  done
+}
+
+function install_oh_my_zsh() {
+  # Install Oh My ZSH
+  echo "⌨️  Installing Oh My ZSH..."
+  if [ -d "$HOME/.oh-my-zsh" ]; then
+    echo "ZSH directory already exists. Skipping."
+  else
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+  fi
+}
+
+function create_folders() {
+  # Create directories
+  echo "🗂  Creating folders..."
+  mkdir -p $HOME/Developer/{me,oss,work}
+}
+
+function link_neovim() {
+  # Linking Neovim config
+  echo "🔗 Creating Neovim config..."
+  ln -sf $ROOT_DIR/configs/neovim/init.vim $HOME/.config/nvim/init.vim
+}
+
+function setup_ssh() {
+  echo "🔒 Checking for existing ssh keys..."
+  SSH_DIR=$HOME/.ssh
+  if [ -d "$SSH_DIR" ]; then
+    echo "Directory $(echo $SSH_DIR) already exists. Skipping."
+  else
+    echo "SSH keys not found. Creating..."
+    mkdir -p $SSH_DIR
+    echo -e "Insert your email to be associated with SSH Key: \c "
+    read email
+    echo "Creating ssh key with email \"$email\"..."
+    ssh-keygen -t ed25519 -C "$email"
+    echo "Adding created ssh key on ssh-agent..."
+    SSH_CONFIG=$SSH_DIR/config
+    if [-f $SSH_CONFIG]; then
+      mv $SSH_CONFIG $SSH_CONFIG.bkp
+    fi
+    touch $SSH_CONFIG
+    cat $ROOT_DIR/configs/ssh/ssh_config > $SSH_CONFIG
+    ssh-add -K $SSH_DIR/id_ed25519
+    echo "SSH configured."
+  fi
+}
+
+# Doing everything...
+create_folders
+link_files
+install_oh_my_zsh
+link_neovim
+setup_ssh

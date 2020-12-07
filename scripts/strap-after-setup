@@ -1,0 +1,61 @@
+#!/bin/bash
+# Removes  on enter
+stty sane
+ROOT_DIR="$(cd $(dirname "${BASH_SOURCE[0]}"); cd ..; pwd)"
+
+function setup_gpg() {
+  GPGKEY=''
+  echo "🔑 Configuring GPG keys..."
+  if hash gpg 2>/dev/null; then
+    if [ $(gpg --list-secret-keys --keyid-format LONG | wc -l) -le 1 ]; then
+      echo "No GPG Key found. Let's create one."
+      echo "Please generate a RSA 4096 bits long"
+      gpg --full-generate-key
+      key_output=$(gpg --list-secret-keys --keyid-format LONG)
+      regex='^.*sec[ \t\n\r\f\v]+(rsa4096\/)([A-Za-z0-9]+)[ \t\n\r\f\v]+'
+      if [[ $key_output =~ $regex ]]; then
+        GPGKEY=${BASH_REMATCH[2]}
+      fi
+    else
+      echo "It looks like your GPG keys are already configured. Skipping."
+    fi
+  else
+    echo "GPG Suite not installed. Install it and try again."
+  fi
+}
+
+function configure_git() {
+  echo "🔧 Now, let's setup Git with your key $GPGKEY"
+  echo -e "WARNING: proceeding will delete your current git config
+  files!"
+  echo -e "Are you sure you want to proceed? [y/N] \c "
+  read response
+
+  if [ "$response" == "y" ]; then
+  for f in $(ls $ROOT_DIR/configs/git/); do
+    echo "Copying $f..."
+    cp -r $ROOT_DIR/configs/git/$f $HOME/.$f
+  done
+    echo -e "What's your name? \c "
+    read name
+    echo -e "Your email? \c "
+    read email
+    echo -e "And your GitHub username? \c "
+    read username
+
+    GITCONFIGFILE=$HOME/.gitconfig
+
+    sed -i -e "s/{{NAME}}/$name/g" $GITCONFIGFILE
+    sed -i -e "s/{{EMAIL}}/$email/g" $GITCONFIGFILE
+    sed -i -e "s/{{USERNAME}}/$username/g" $GITCONFIGFILE
+    sed -i -e "s/{{GPGKEY}}/$GPGKEY/g" $GITCONFIGFILE
+    echo "Git configured."
+  else
+    echo "Git configuration aborted."
+  fi
+}
+
+setup_gpg
+configure_git
+
+echo "Finished! 🎉"

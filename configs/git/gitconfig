@@ -1,0 +1,54 @@
+[user]
+	name = {{NAME}}
+	email = {{EMAIL}}
+  signingkey = {{GPGKEY}}
+[core]
+  excludesfile = ~/.gitignore
+  editor = nvim
+[github]
+	user = {{USERNAME}}
+[pull]
+  rebase = true
+[push]
+	default = simple
+[credential]
+	helper = osxkeychain
+[commit]
+	gpgsign = true
+  verbose = true
+[gpg]
+	program = gpg2
+[merge]
+  ff = false
+[rebase]
+  autosquash = true
+[alias]
+  branch-cleanup = "!git branch --merged | egrep -v \"(^\\*|master|dev)\" | xargs git branch -d #"
+  current-branch = rev-parse --abbrev-ref HEAD
+  diff-origin = "!sh -c 'git diff origin/$(git current-branch)'"
+  find-merge = "!sh -c 'commit=$0 && branch=${1:-HEAD} && (git rev-list $commit..$branch --ancestry-path | cat -n; git rev-list $commit..$branch --first-parent | cat -n) | sort -k2 | uniq -f1 -d | sort -n | tail -1 | cut -f2'"
+  lg1 = log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)' --all
+  push-and-set-upstream = "!git push -u origin $(git current-branch)"
+  upstream-and-open-pr = "!git push --progress -u origin $(git current-branch) 2>&1 | tee /dev/tty | egrep -o 'https?://[^ ]+' | xargs -I {} open {}"
+  show-merge = "!sh -c 'merge=$(git find-merge $0 $1) && [ -n \"$merge\" ] && git show $merge'"
+  tago = tag --sort=committerdate
+  update-and-rebase-with-master = "!sh -c 'git update-master && git rebase master'"
+  update-master = fetch origin master:master
+  update-with-master = pull --rebase origin master
+  checkout-previous-branch = checkout @{-1}
+  lg = !"git lg1"
+  lg1 = !"git lg1-specific --all"
+  lg2 = !"git lg2-specific --all"
+  lg3 = !"git lg3-specific --all"
+  hist = !"git lg3"
+  lg1-specific = log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(auto)%d%C(reset)'
+  lg2-specific = log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(reset) %C(bold green)(%ar)%C(reset)%C(auto)%d%C(reset)%n''          %C(white)%s%C(reset) %C(dim white)- %an%C(reset)'
+  lg3-specific = log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(reset) %C(bold green)(%ar)%C(reset) %C(bold cyan)(committed: %cD)%C(reset) %C(auto)%d%C(reset)%n''          %C(white)%s%C(reset)%n''          %C(dim white)- %an <%ae> %C(reset) %C(dim white)(committer: %cn <%ce>)%C(reset)'
+[fetch]
+  prune = true
+# [include]
+#   # configs that are different in each machine
+#   path = .gitconfig_local
+#   # if I need to include some path that is a git dir:
+#   [includeIf "gitdir:~/path/to/directory"]
+#   path = ~/.gitconfig-alt
