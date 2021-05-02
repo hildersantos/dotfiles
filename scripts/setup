@@ -31,6 +31,7 @@ function create_folders() {
 function link_neovim() {
   # Linking Neovim config
   echo "🔗 Creating Neovim config..."
+  mkdir -p $HOME/.config/nvim
   ln -sf $ROOT_DIR/configs/neovim/init.vim $HOME/.config/nvim/init.vim
 }
 

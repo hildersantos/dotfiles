@@ -18,6 +18,10 @@ endif
 call plug#begin(stdpath('config') . '/plugged')
 Plug 'vim-airline/vim-airline'
 Plug 'ctrlpvim/ctrlp.vim'
+" Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+" Plug 'junegunn/fzf.vim'
+" Build the extra binary if cargo exists on your system.
+" Plug 'liuchengxu/vim-clap', { 'do': ':Clap install-binary' }
 Plug 'dyng/ctrlsf.vim'
 Plug 'rizzatti/dash.vim'
 " Remember to install a compatible NerdFont before installing
@@ -29,13 +33,17 @@ Plug 'rakr/vim-one'
 Plug 'sheerun/vim-polyglot'
 Plug 'preservim/nerdtree'
 Plug 'tiagofumo/vim-nerdtree-syntax-highlight'
+Plug 'Xuyuanp/nerdtree-git-plugin'
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
-let g:coc_global_extensions = ['coc-elixir', 'coc-diagnostic']
+let g:coc_global_extensions = ['coc-elixir', 'coc-diagnostic', 'coc-snippets', 'coc-rls']
 Plug 'elixir-lsp/elixir-ls', { 'do': { -> g:ElixirLS.compile() } }
 Plug 'tpope/vim-fugitive'
 Plug 'arcticicestudio/nord-vim'
 Plug 'jiangmiao/auto-pairs'
 Plug 'mattn/emmet-vim'
+Plug 'ntk148v/vim-horizon'
+" Plug 'ptzz/lf.vim'
+" Plug 'voldikss/vim-floaterm'
 call plug#end()
 
 " ===============================================================
@@ -62,7 +70,7 @@ syntax enable
 " endif
 
 " set background=dark
-colorscheme nord
+colorscheme horizon
 let g:one_allow_italics = 1
 
 " ===============================================================
@@ -71,6 +79,8 @@ let g:one_allow_italics = 1
 
 set hidden
 set nobackup
+set autochdir
+set mouse=a
 set nowritebackup
 set updatetime=300
 set shortmess+=c
@@ -92,6 +102,7 @@ set cursorline
 set title
 " set cmdheight=2
 set shiftwidth=2
+set showmatch
 set expandtab
 set tabstop=2
 set softtabstop=2
@@ -100,10 +111,26 @@ set clipboard+=unnamedplus
 " Table width (for line wrapping)
 set tw=80
 " Format options
-set fo?
-set fo+=cl
+" set fo?
+ set fo+=o
+ set nojoinspaces
+ set splitbelow
+ set splitright
 
+ " Tell Vim which characters to show for expanded TABs,
+" trailing whitespace, and end-of-lines. VERY useful!
+if &listchars ==# 'eol:$'
+  set listchars=tab:>\ ,trail:-,extends:>,precedes:<,nbsp:+
+endif
+set list                " Show problematic characters.
 
+" Also highlight all tabs and trailing whitespace characters.
+highlight ExtraWhitespace ctermbg=darkgreen guibg=darkgreen
+match ExtraWhitespace /\s\+$\|\t/
+
+" Leader Key
+nnoremap <SPACE> <Nop>
+let g:mapleader=" "
 " ===============================================================
 " Plugins Options
 " ===============================================================
@@ -112,10 +139,47 @@ set fo+=cl
 " Airline
 " ***********************************
 let g:airline#extensions#branch#enabled = 1
+let g:airline#extensions#tabline#enabled = 1
+let g:airline#extensions#tabline#fnamemod = ':t'
+let g:airline#extensions#tabline#formatter = 'unique_tail_improved'
+" let g:airline#extensions#tabline#left_sep = ' '
+" let g:airline#extensions#tabline#left_alt_sep = '|'
+" let g:airline#extensions#tabline#right_sep = ' '
+" let g:airline#extensions#tabline#right_alt_sep = '|'
+" let g:airline_left_sep = ' '
+" let g:airline_left_alt_sep = '|'
+" let g:airline_right_sep = ' '
+" let g:airline_right_alt_sep = '|'
 
 " ***********************************
 " coc-nvim
 " ***********************************
+"
+" ***********************************
+" CtrlP
+" ***********************************
+let g:ctrlp_working_path_mode = 'r'
+let g:ctrlp_user_command = ['.git/', 'git --git-dir=%s/.git ls-files -oc --exclude-standard']
+" Open file menu
+nnoremap <Leader>o :CtrlP<CR>
+" Open buffer menu
+nnoremap <Leader>b :CtrlPBuffer<CR>
+" Open most recently used files
+nnoremap <Leader>f :CtrlPMRUFiles<CR>
+
+" ***********************************
+" CtrlSF
+" ***********************************
+let g:ctrlsf_default_root = 'project'
+
+" ***********************************
+" NERDTree
+" ***********************************
+let g:NERDTreeGitStatusUseNerdFonts = 1
+" Start NERDTree when Vim starts with a directory argument.
+autocmd StdinReadPre * let s:std_in=1
+autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists('s:std_in') |
+    \ execute 'NERDTreeVCS' argv()[0] | wincmd p | enew | execute 'cd '.argv()[0] | endif
 
 " ***********************************
 " emmet-vim
@@ -193,25 +257,39 @@ call coc#config('elixir.pathToElixirLS', g:ElixirLS.lsp)
 " ***********************************
 
 " Use comma for leader
-let g:mapleader=','
 " Double backslash for local leader
-let g:maplocalleader='\\'
+" let g:maplocalleader='\\'
+" Create directories for new files
+nnoremap <silent> <leader>c :! mkdir -p %:h<CR> 
 " Stop highlighting on Enter
 nnoremap <silent> <Esc><Esc> :let @/ = ""<CR>
 " Show me those buffers
-nnoremap <leader>l :ls<cr>:b<space>
-nnoremap <leader><TAB> :e#<CR>
+nnoremap <Leader>bl :ls<cr>:b<space>
+nnoremap <Leader><TAB> :e#<CR>
+" Buff deletion
+" nnoremap <Leader>bd :bdelete<CR>
+" nnoremap <Leader>b<S-D> :BufOnly<CR>
 " Move arround panels with Ctrl+HJKL
-noremap <C-H> <C-W><Left>
-noremap <C-K> <C-W><Up>
-noremap <C-J> <C-W><Down>
-noremap <C-L> <C-W><Right>
+"noremap <C-H> <C-W><Left>
+"noremap <C-K> <C-W><Up>
+"noremap <C-J> <C-W><Down>
+"noremap <C-L> <C-W><Right>
+" Move around buffers
+nnoremap <silent><C-h> :bprevious<CR>
+nnoremap <silent><C-l> :bnext<CR>
+nnoremap <silent><C-x> :bp <BAR> bd #<CR>
 " Terminal
 tnoremap <ESC> <C-\><C-n>
 tnoremap <expr> <C-R> '<C-\><C-N>"'.nr2char(getchar()).'pi'
+nnoremap <silent><Leader>t :tabnew <BAR> term<CR>
 " Sort lists
 vnoremap <Leader>s :sort<CR>
-
+command! -complete=file -nargs=1 Remove :echo 'Remove: '.'<f-args>'.' '.(delete(<f-args>) == 0 ? 'SUCCEEDED' : 'FAILED')
+command! BufOnly execute '%bdelete|edit #|normal `"'
+" Use ; for commands.
+nnoremap ; :
+" Use Q to execute default register.
+nnoremap Q @q
 " ***********************************
 " CtrlSF
 " ***********************************
@@ -224,6 +302,25 @@ nmap     <C-F>p <Plug>CtrlSFPwordPath
 nnoremap <C-F>o :CtrlSFOpen<CR>
 nnoremap <C-F>t :CtrlSFToggle<CR>
 inoremap <C-F>t <Esc>:CtrlSFToggle<CR>
+
+" ***********************************
+" FZF
+" ***********************************
+nmap <C-P> :Files<CR>
+" Search pattern across repository files
+function! FzfExplore(...)
+    let inpath = substitute(a:1, "'", '', 'g')
+    if inpath == "" || matchend(inpath, '/') == strlen(inpath)
+        execute "cd" getcwd() . '/' . inpath
+        let cwpath = getcwd() . '/'
+        call fzf#run(fzf#wrap(fzf#vim#with_preview({'source': 'ls -1ap', 'dir': cwpath, 'sink': 'FZFExplore', 'options': ['--prompt', cwpath]})))
+    else
+        let file = getcwd() . '/' . inpath
+        execute "e" file
+    endif
+endfunction
+
+command! -nargs=* FZFExplore call FzfExplore(shellescape(<q-args>))
 
 " ***********************************
 " Coc.Nvim
@@ -279,35 +376,40 @@ function! s:show_documentation()
   endif
 endfunction
 " Remap for rename current word
-nmap <leader>rn <Plug>(coc-rename)
+nmap <Leader>cr <Plug>(coc-rename)
 
 " Remap for format selected region
-xmap <leader>f  <Plug>(coc-format-selected)
-nmap <leader>f  <Plug>(coc-format-selected)
+xmap <Leader>cf  <Plug>(coc-format-selected)
+nmap <Leader>cf  <Plug>(coc-format-selected)
 " Using CocList
 " Show all diagnostics
-nnoremap <silent> <space>a  :<C-u>CocList diagnostics<cr>
+nnoremap <silent> <Leader>ca  :<C-u>CocList diagnostics<cr>
 " Manage extensions
-nnoremap <silent> <space>e  :<C-u>CocList extensions<cr>
+nnoremap <silent> <Leader>ce  :<C-u>CocList extensions<cr>
 " Show commands
-nnoremap <silent> <space>c  :<C-u>CocList commands<cr>
+nnoremap <silent> <Leader>cc  :<C-u>CocList commands<cr>
 " Find symbol of current document
-nnoremap <silent> <space>o  :<C-u>CocList outline<cr>
+nnoremap <silent> <Leader>co  :<C-u>CocList outline<cr>
 " Search workspace symbols
-nnoremap <silent> <space>s  :<C-u>CocList -I symbols<cr>
+nnoremap <silent> <Leader>cs  :<C-u>CocList -I symbols<cr>
 " Do default action for next item.
-nnoremap <silent> <space>j  :<C-u>CocNext<CR>
+nnoremap <silent> <Leader>cj  :<C-u>CocNext<CR>
 " Do default action for previous item.
-nnoremap <silent> <space>k  :<C-u>CocPrev<CR>
+nnoremap <silent> <Leader>ck  :<C-u>CocPrev<CR>
 " Resume latest coc list
-nnoremap <silent> <space>p  :<C-u>CocListResume<CR>
+nnoremap <silent> <Leader>cp  :<C-u>CocListResume<CR>
 command! -nargs=0 Format :call CocAction('format')
 
 " ***********************************
 " NerdTREE
 " ***********************************
 
-nnoremap <silent> <C-n> :NERDTreeToggle<CR>
+nnoremap <silent><C-t> :NERDTreeToggleVCS<CR>
+
+" ***********************************
+" LF
+" ***********************************
+" let g:lf_replace_netrw = 1 " Open lf when vim opens a directory
 
 " ***********************************
 " Dash
