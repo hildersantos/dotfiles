@@ -24,11 +24,16 @@ cask 'cyberduck'
 cask 'dash'
 cask 'docker'
 cask 'evernote'
+cask 'exodus'
 cask 'firefox'
 cask 'google-chrome'
 cask 'gpg-suite'
 cask 'grammarly'
 cask 'iterm2'
+cask 'kindle'
+cask 'licecap'
+cask 'microsoft-office'
+cask 'microsoft-teams'
 cask 'notion'
 cask 'openemu'
 cask 'paw'
@@ -47,3 +52,14 @@ cask 'font-hack-nerd-font'
 cask 'font-lato'
 cask 'font-montserrat'
 cask 'font-open-sans'
+
+# App Store apps
+brew 'mas'
+mas '1Blocker: Ad Blocker & Privacy', id: 1365531024
+mas 'Be Focused Pro', id: 961632517
+mas 'Craft', id: 1487937127
+mas 'Day One', id: 1055511498
+mas 'LastPass Password Manager', id: 926036361
+mas 'Magnet', id: 441258766
+mas 'MindNode – Mind Map & Outline', id: 1289197285
+mas 'Things 3', id: 904280696
