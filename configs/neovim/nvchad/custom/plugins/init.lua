@@ -16,10 +16,35 @@ return {
     end,
   },
   ["jose-elias-alvarez/null-ls.nvim"] = {
-      after = "nvim-lspconfig",
-      config = function()
-         require "custom.plugins.null-ls"
-      end,
-    }
+    after = "nvim-lspconfig",
+    config = function()
+      require "custom.plugins.null-ls"
+    end,
+  },
+    -- minimal modes
+  ["Pocco81/TrueZen.nvim"] = {
+    cmd = {
+      "TZAtaraxis",
+      "TZMinimalist",
+      "TZFocus",
+    },
+    config = function()
+      require "custom.plugins.truezen"
+    end,
+  },
+    -- notes stuff
+  ["nvim-neorg/neorg"] = {
+    ft = "norg",
+    after = "nvim-treesitter",
+    config = function()
+      require "custom.plugins.neorg"
+    end,
+  },
+  -- dim inactive windows
+  -- ["andreadev-it/shade.nvim"] = {
+  --   module = "shade",
+  --   config = function()
+  --     require("custom.plugins.smolconfigs").shade()
+  --   end,
+  -- },
 }
-
